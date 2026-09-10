@@ -9,6 +9,9 @@ import {
 import { Product, CATEGORIES, SIZES, SizeStock, ColorOption } from '@/types';
 import { formatPrice, cn } from '@/lib/utils';
 
+const ADMIN_PASSWORD = 'nazadmin';
+const ADMIN_SESSION_KEY = 'naz-boot-house-admin-session';
+
 interface AdminFormData {
   name: string;
   description: string;
@@ -26,6 +29,33 @@ interface AdminFormData {
 }
 
 export default function AdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  useEffect(() => {
+    setIsAuthenticated(sessionStorage.getItem(ADMIN_SESSION_KEY) === 'authenticated');
+    setIsAuthReady(true);
+  }, []);
+
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(ADMIN_SESSION_KEY, 'authenticated');
+      setIsAuthenticated(true);
+      setLoginError('');
+      setPassword('');
+    } else {
+      setLoginError('That password is not correct.');
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    setIsAuthenticated(false);
+  };
+
   // Register service worker for PWA
   useEffect(() => {
     if ('serviceWorker' in navigator) {
@@ -245,6 +275,32 @@ export default function AdminPage() {
     }
   };
 
+  if (!isAuthReady) {
+    return <main className="flex min-h-screen items-center justify-center bg-background"><div className="animate-spin rounded-full h-10 w-10 border-4 border-primary border-t-transparent" /></main>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-secondary px-5 py-10">
+        <div className="w-full max-w-md border border-border bg-card p-6 shadow-xl sm:p-9">
+          <div className="mb-8">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-accent">Naz Boot House</p>
+            <h1 className="font-serif text-4xl text-foreground">Admin access</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Sign in to manage the product catalogue.</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <label className="block text-sm font-medium text-foreground" htmlFor="admin-password">Password
+              <input id="admin-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="input-field mt-2 w-full" placeholder="Enter admin password" required />
+            </label>
+            {loginError && <p role="alert" className="text-sm text-destructive">{loginError}</p>}
+            <button type="submit" className="btn-primary w-full">Unlock dashboard</button>
+          </form>
+          <p className="mt-6 text-center text-xs text-muted-foreground">Password is configured in <code>src/app/admin/page.tsx</code>.</p>
+        </div>
+      </main>
+    );
+  }
+
   if (isLoading) {
     return (
       <main className="flex-1 pt-16 flex items-center justify-center">
@@ -261,7 +317,9 @@ export default function AdminPage() {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
             <p className="text-gray-500 mt-1 text-sm sm:text-base">Manage your product catalog</p>
           </div>
-          <button 
+          <div className="flex w-full gap-2 sm:w-auto">
+            <button type="button" onClick={handleLogout} className="btn-secondary flex-1 px-4 py-3 sm:flex-none">Log out</button>
+            <button 
             onClick={() => openModal()} 
             className="btn-primary flex items-center gap-2 w-full sm:w-auto py-3 px-6 text-base"
             style={{ minHeight: '48px' }}
@@ -270,6 +328,7 @@ export default function AdminPage() {
             <span className="hidden sm:inline">Add Product</span>
             <span className="sm:hidden">Add</span>
           </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
