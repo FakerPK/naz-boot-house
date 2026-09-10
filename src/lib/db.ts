@@ -1,10 +1,15 @@
 import { Redis } from '@upstash/redis';
 import { Product, CartItem, Order, CATEGORIES } from '@/types';
 
-const redisUrl = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-const redisToken = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-
 function getRedis() {
+  const redisUrl =
+    process.env.KV_REST_API_URL ??
+    process.env.REDIS_URL ??
+    process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken =
+    process.env.KV_REST_API_TOKEN ??
+    process.env.UPSTASH_REDIS_REST_TOKEN;
+
   if (!redisUrl || !redisToken) {
     throw new Error(
       'Redis is not configured. Set KV_REST_API_URL and KV_REST_API_TOKEN in the project environment (legacy UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are also supported).',
