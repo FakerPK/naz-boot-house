@@ -1,210 +1,44 @@
-import { Metadata } from 'next';
-import { getProducts, initializeSampleData } from '@/lib/db';
-import { ProductCard } from '@/components/ProductCard';
-import { CATEGORIES } from '@/types';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Naz Boot House - Premium Footwear for Every Occasion',
-  description: 'Discover premium shoes, slippers, school shoes, and sports footwear at Naz Boot House. Quality craftsmanship, comfortable fit, and timeless style.',
-};
+import Link from 'next/link';
+import { ArrowRight, ChevronRight, Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { useState } from 'react';
 
-export const dynamic = 'force-dynamic';
+const products = [
+  { id: 'heritage-runner', name: 'Heritage Runner', category: 'Everyday sneaker', price: 'PKR 8,900', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=900' },
+  { id: 'city-loafer', name: 'City Loafer', category: 'Polished leather', price: 'PKR 12,500', image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=900' },
+  { id: 'canvas-low', name: 'Canvas Low', category: 'Easy casual', price: 'PKR 5,800', image: 'https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?w=900' },
+];
 
-export default async function HomePage() {
-  await initializeSampleData();
-  
-  const [featuredProducts, newProducts, saleProducts] = await Promise.all([
-    getProducts().then(p => p.filter(prod => prod.featured).slice(0, 8)),
-    getProducts().then(p => p.filter(prod => prod.isNew).slice(0, 8)),
-    getProducts().then(p => p.filter(prod => prod.onSale).slice(0, 8)),
-  ]);
+export default function HomePage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [bagCount, setBagCount] = useState(0);
 
   return (
-    <main className="flex-1 pt-16">
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-900 via-primary-800 to-primary-700 text-white">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=%2260%22 height=%2260%22 viewBox=%220 0 60 60%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cg fill=%22none%22 fill-rule=%22evenodd%22%3E%3Cg fill=%22%23ffffff%22 fill-opacity=%220.03%22%3E%3Cpath d=%22M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z%22/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-50" />
-        <div className="container-custom relative py-20 lg:py-32">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Step Into{' '}
-              <span className="text-accent-400">Comfort & Style</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-primary-100 mb-8 max-w-2xl leading-relaxed">
-              Discover premium footwear crafted for every occasion. From formal shoes to casual sneakers, 
-              find your perfect fit at Naz Boot House.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <a
-                href="/shop"
-                className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2"
-              >
-                Shop Now
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </a>
-              <a
-                href="/shop?category=shoes"
-                className="btn-outline border-white text-white hover:bg-white hover:text-primary-900 w-full sm:w-auto"
-              >
-                Explore Collection
-              </a>
-            </div>
-          </div>
+    <main className="min-h-screen bg-[#f3efe7] text-[#24221f]">
+      <div className="bg-[#24221f] px-5 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#e9d4ae]">Free delivery across Pakistan over PKR 5,000</div>
+      <header className="border-b border-[#24221f]/15 bg-[#f3efe7]">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-6 lg:px-10">
+          <button aria-label="Open menu" onClick={() => setMenuOpen(!menuOpen)} className="lg:hidden">{menuOpen ? <X size={22} /> : <Menu size={22} />}</button>
+          <Link href="/" className="font-serif text-2xl font-bold tracking-tight">naz<span className="text-[#a44b35]">.</span></Link>
+          <nav className="hidden items-center gap-8 text-sm font-semibold lg:flex"><Link href="/shop">Shop all</Link><Link href="/shop?category=formal">Formal</Link><Link href="/shop?category=sports">Sports</Link><Link href="/admin">Admin</Link></nav>
+          <div className="flex items-center gap-4"><button aria-label="Search"><Search size={19} /></button><Link href="/cart" className="relative" aria-label="Shopping bag"><ShoppingBag size={20} />{bagCount > 0 && <span className="absolute -right-2 -top-2 flex h-4 w-4 items-center justify-center rounded-full bg-[#a44b35] text-[10px] text-white">{bagCount}</span>}</Link></div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent" />
+        {menuOpen && <nav className="flex flex-col gap-4 border-t border-[#24221f]/15 px-5 py-5 text-sm font-semibold lg:hidden"><Link href="/shop">Shop all</Link><Link href="/shop?category=formal">Formal</Link><Link href="/shop?category=sports">Sports</Link><Link href="/admin">Admin</Link></nav>}
+      </header>
+
+      <section className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:py-20 lg:grid-cols-[1fr_0.88fr] lg:items-end lg:px-10 lg:py-24">
+        <div><p className="eyebrow">Naz Boot House / Since 1998</p><h1 className="mt-5 max-w-3xl font-serif text-6xl leading-[.92] tracking-[-.04em] sm:text-8xl">Good shoes make the day feel easier.</h1><p className="mt-7 max-w-xl text-lg leading-8 text-[#605a51]">Reliable comfort, honest materials, and considered design for school runs, long commutes, celebrations, and everything in between.</p><div className="mt-9 flex flex-wrap gap-3"><Link href="/shop" className="inline-flex items-center gap-3 bg-[#24221f] px-6 py-4 font-semibold text-[#f3efe7] transition hover:bg-[#a44b35]">Shop the collection <ArrowRight size={17} /></Link><Link href="/shop?category=formal" className="inline-flex items-center gap-3 border border-[#24221f] px-6 py-4 font-semibold">The formal edit</Link></div></div>
+        <div className="relative min-h-[390px] overflow-hidden bg-[#c7bba7]"><img src="https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?w=1200" alt="Brown leather shoe" className="h-full w-full object-cover mix-blend-multiply" /><div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#24221f]/80 to-transparent p-6 pt-24 text-xs font-semibold uppercase tracking-[.18em] text-[#e9d4ae]">The everyday edit / 01</div></div>
       </section>
 
-      <section className="py-16 bg-white">
-        <div className="container-custom">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { icon: 'Truck', title: 'Free Shipping', desc: 'On orders over PKR 5,000' },
-              { icon: 'Shield', title: 'Secure Payment', desc: '100% secure checkout' },
-              { icon: 'RotateCcw', title: 'Easy Returns', desc: '30-day return policy' },
-              { icon: 'Headphones', title: '24/7 Support', desc: 'We\'re here to help' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="text-center p-6">
-                <div className="w-14 h-14 rounded-xl bg-primary-100 flex items-center justify-center mx-auto mb-4 text-primary-700">
-                  {icon === 'Truck' && <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" /></svg>}
-                  {icon === 'Shield' && <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
-                  {icon === 'RotateCcw' && <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
-                  {icon === 'Headphones' && <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" /></svg>}
-                </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-                <p className="text-sm text-gray-500">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <section className="border-y border-[#24221f]/10 bg-[#e9d4ae]"><div className="mx-auto grid max-w-7xl gap-6 px-5 py-7 text-sm sm:grid-cols-3 lg:px-10"><div><strong>Nationwide delivery</strong><p className="mt-1 text-[#605a51]">Carefully packed to your door.</p></div><div><strong>Fit you can trust</strong><p className="mt-1 text-[#605a51]">Helpful sizing support.</p></div><div><strong>Easy exchanges</strong><p className="mt-1 text-[#605a51]">Simple when plans change.</p></div></div></section>
 
-      <section className="py-16 bg-gray-50">
-        <div className="container-custom">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Shop by Category</h2>
-              <p className="text-gray-500 mt-1">Explore our curated collections</p>
-            </div>
-            <a
-              href="/shop"
-              className="text-primary-700 font-medium hover:text-primary-800 flex items-center gap-1"
-            >
-              View All
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-            </a>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {CATEGORIES.map((category) => (
-              <a
-                key={category.id}
-                href={`/shop?category=${category.slug}`}
-                className="group relative aspect-square rounded-xl overflow-hidden"
-              >
-                <img
-                  src={category.image}
-                  alt={category.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white font-semibold text-lg">{category.name}</h3>
-                  <p className="text-primary-100 text-sm">{category.productCount} products</p>
-                </div>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <section className="mx-auto max-w-7xl px-5 py-20 lg:px-10"><div className="mb-9 flex items-end justify-between"><div><p className="eyebrow">Selected for you</p><h2 className="mt-3 font-serif text-5xl">The good stuff</h2></div><Link href="/shop" className="hidden items-center gap-2 font-semibold text-[#a44b35] sm:flex">View all <ChevronRight size={18} /></Link></div><div className="grid gap-5 sm:grid-cols-3">{products.map((product) => <article key={product.id} className="group"><Link href={`/product/${product.id}`} className="block overflow-hidden bg-[#ded7ca]"><img src={product.image} alt={product.name} className="aspect-[.92] w-full object-cover mix-blend-multiply transition duration-500 group-hover:scale-105" /></Link><div className="flex items-start justify-between gap-4 pt-4"><div><p className="text-xs uppercase tracking-[.12em] text-[#a44b35]">{product.category}</p><h3 className="mt-1 font-serif text-2xl">{product.name}</h3></div><p className="font-semibold">{product.price}</p></div><button onClick={() => setBagCount((count) => count + 1)} className="mt-4 w-full border border-[#24221f] py-3 text-sm font-semibold transition hover:bg-[#24221f] hover:text-[#f3efe7]">Add to bag</button></article>)}</div></section>
 
-      {featuredProducts.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="container-custom">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Featured Products</h2>
-                <p className="text-gray-500 mt-1">Our handpicked favorites</p>
-              </div>
-              <a
-                href="/shop?featured=true"
-                className="text-primary-700 font-medium hover:text-primary-800 flex items-center gap-1"
-              >
-                View All
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </a>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      <section className="bg-[#24221f] px-5 py-20 text-[#f3efe7]"><div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2 lg:items-center lg:px-5"><div><p className="eyebrow text-[#e9d4ae]">A little note from us</p><h2 className="mt-4 max-w-xl font-serif text-5xl leading-tight">Made for real life, not just the shelf.</h2></div><p className="max-w-lg text-lg leading-8 text-[#bcb5aa]">We started with one shop and a simple belief: the right pair should earn its place in your routine. Every collection is chosen with comfort, durability, and local everyday life in mind.</p></div></section>
 
-      {newProducts.length > 0 && (
-        <section className="py-16 bg-gray-50">
-          <div className="container-custom">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">New Arrivals</h2>
-                <p className="text-gray-500 mt-1">Fresh styles just landed</p>
-              </div>
-              <a
-                href="/shop?new=true"
-                className="text-primary-700 font-medium hover:text-primary-800 flex items-center gap-1"
-              >
-                View All
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </a>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {newProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {saleProducts.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="container-custom">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Sale</h2>
-                <p className="text-gray-500 mt-1">Great deals on selected styles</p>
-              </div>
-              <a
-                href="/shop?sale=true"
-                className="text-primary-700 font-medium hover:text-primary-800 flex items-center gap-1"
-              >
-                View All
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-              </a>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {saleProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      <section className="py-16 bg-primary-900 text-white">
-        <div className="container-custom text-center">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4">Ready to Find Your Perfect Pair?</h2>
-          <p className="text-primary-200 mb-8 max-w-2xl mx-auto">
-            Join thousands of satisfied customers. Shop with confidence at Naz Boot House.
-          </p>
-          <a
-            href="/shop"
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent-500 text-white font-medium rounded-lg hover:bg-accent-600 transition-colors"
-          >
-            Start Shopping
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-          </a>
-        </div>
-      </section>
+      <footer className="mx-auto flex max-w-7xl flex-col gap-5 px-5 py-10 text-sm sm:flex-row sm:items-center sm:justify-between lg:px-10"><p className="font-serif text-xl font-bold">naz<span className="text-[#a44b35]">.</span></p><p className="text-[#605a51]">Footwear made for your everyday.</p><Link href="/admin" className="font-semibold text-[#a44b35]">Manage store</Link></footer>
     </main>
   );
 }
