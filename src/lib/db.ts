@@ -14,8 +14,9 @@ export async function getProducts(): Promise<Product[]> {
   try {
     const products = await redis.get<Product[]>(PRODUCTS_KEY);
     return products || [];
-  } catch {
-    return [];
+  } catch (error) {
+    console.error('Redis getProducts error:', error);
+    throw error;
   }
 }
 
