@@ -1,22 +1,38 @@
 import { Redis } from '@upstash/redis';
 import { Product, CartItem, Order, CATEGORIES } from '@/types';
 
+function firstConfigured(...values: Array<string | undefined>) {
+  return values.find((value) => Boolean(value?.trim()));
+}
+
 function getRedis() {
-  const redisUrl =
-    process.env.KV_REST_API_URL ??
-    process.env.REDIS_URL ??
-    process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken =
-    process.env.KV_REST_API_TOKEN ??
-    process.env.UPSTASH_REDIS_REST_TOKEN;
+  const redisUrl = firstConfigured(
+    process.env.KV_REST_API_URL,
+    process.env.KV_REST_API_URL_2,
+    process.env.KV_REST_API_URL_2_2,
+    process.env.REDIS_URL,
+    process.env.KV_URL,
+    process.env.UPSTASH_REDIS_REST_URL,
+  );
+  const redisToken = firstConfigured(
+    process.env.KV_REST_API_TOKEN,
+    process.env.KV_REST_API_READ_ONLY_TOKEN,
+    process.env.UPSTASH_REDIS_REST_TOKEN,
+  );
 
   if (!redisUrl || !redisToken) {
-    throw new Error(
-      'Redis is not configured. Set KV_REST_API_URL and KV_REST_API_TOKEN in the project environment (legacy UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are also supported).',
-    );
+    return null;
   }
 
   return new Redis({ url: redisUrl, token: redisToken });
+}
+
+function requireRedis() {
+  const redis = getRedis();
+  if (!redis) {
+    throw new Error('Redis is unavailable. Configure a KV REST URL and token to enable catalogue writes.');
+  }
+  return redis;
 }
 
 const PRODUCTS_KEY = 'products';
@@ -25,7 +41,9 @@ const CART_PREFIX = 'cart:';
 
 export async function getProducts(): Promise<Product[]> {
   try {
-    const products = await getRedis().get<Product[]>(PRODUCTS_KEY);
+    const redis = getRedis();
+    if (!redis) return [];
+    const products = await redis.get<Product[]>(PRODUCTS_KEY);
     return products || [];
   } catch (error) {
     console.error('Redis getProducts error:', error);
@@ -46,13 +64,13 @@ export async function saveProduct(product: Product): Promise<void> {
   } else {
     products.push({ ...product, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
   }
-  await getRedis().set(PRODUCTS_KEY, products);
+  await requireRedis().set(PRODUCTS_KEY, products);
 }
 
 export async function deleteProduct(id: string): Promise<void> {
   const products = await getProducts();
   const filtered = products.filter(p => p.id !== id);
-  await getRedis().set(PRODUCTS_KEY, filtered);
+  await requireRedis().set(PRODUCTS_KEY, filtered);
 }
 
 export async function getProductsByCategory(category: string): Promise<Product[]> {
@@ -88,7 +106,7 @@ export async function searchProducts(query: string): Promise<Product[]> {
 
 export async function getCart(sessionId: string): Promise<CartItem[]> {
   try {
-    const cart = await getRedis().get<CartItem[]>(`${CART_PREFIX}${sessionId}`);
+    const cart = await requireRedis().get<CartItem[]>(`${CART_PREFIX}${sessionId}`);
     return cart || [];
   } catch {
     return [];
@@ -96,22 +114,22 @@ export async function getCart(sessionId: string): Promise<CartItem[]> {
 }
 
 export async function saveCart(sessionId: string, items: CartItem[]): Promise<void> {
-  await getRedis().set(`${CART_PREFIX}${sessionId}`, items);
+  await requireRedis().set(`${CART_PREFIX}${sessionId}`, items);
 }
 
 export async function clearCart(sessionId: string): Promise<void> {
-  await getRedis().del(`${CART_PREFIX}${sessionId}`);
+  await requireRedis().del(`${CART_PREFIX}${sessionId}`);
 }
 
 export async function createOrder(order: Order): Promise<void> {
   const orders = await getOrders();
   orders.unshift(order);
-  await getRedis().set(ORDERS_KEY, orders);
+  await requireRedis().set(ORDERS_KEY, orders);
 }
 
 export async function getOrders(): Promise<Order[]> {
   try {
-    const orders = await getRedis().get<Order[]>(ORDERS_KEY);
+    const orders = await requireRedis().get<Order[]>(ORDERS_KEY);
     return orders || [];
   } catch {
     return [];
@@ -129,7 +147,7 @@ export async function updateOrderStatus(id: string, status: Order['status']): Pr
   if (index >= 0) {
     orders[index].status = status;
     orders[index].updatedAt = new Date().toISOString();
-    await getRedis().set(ORDERS_KEY, orders);
+    await requireRedis().set(ORDERS_KEY, orders);
   }
 }
 
@@ -302,7 +320,7 @@ export async function initializeSampleData(): Promise<void> {
     },
   ];
 
-  await getRedis().set(PRODUCTS_KEY, sampleProducts);
+  await requireRedis().set(PRODUCTS_KEY, sampleProducts);
 }
 
 export function getCategories() {
